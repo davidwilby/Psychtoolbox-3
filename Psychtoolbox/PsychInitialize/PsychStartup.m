@@ -25,7 +25,6 @@ function PsychStartup
 % 01.09.2020  mk  Update for GStreamer 1.18.0 - GStreamer 1.18+ MSVC detection.
 % 26.10.2020  mk  Update for GStreamer 1.18.0+ use only.
 % 21.11.2020  mk  Reenable GStreamer on octave-cli for Windows. Workaround no longer needed.
-% 11.10.2021  mk  Fix wrong drive letters in Win fallback GStreamer detection, introduced in 3.0.17.0.
 
 % Try-Catch protect the function, so Matlab startup won't fail due to
 % errors in this function:
@@ -85,19 +84,19 @@ try
         end
 
         if isempty(sdkroot) && exist(['D:\gstreamer\1.0\' suffix], 'dir')
-            sdkroot = ['D:\gstreamer\1.0\' suffix];
+            sdkroot = ['C:\gstreamer\1.0\' suffix];
         end
 
         if isempty(sdkroot) && exist(['E:\gstreamer\1.0\' suffix], 'dir')
-            sdkroot = ['E:\gstreamer\1.0\' suffix];
+            sdkroot = ['C:\gstreamer\1.0\' suffix];
         end
 
         if isempty(sdkroot) && exist(['F:\gstreamer\1.0\' suffix], 'dir')
-            sdkroot = ['F:\gstreamer\1.0\' suffix];
+            sdkroot = ['C:\gstreamer\1.0\' suffix];
         end
 
         if isempty(sdkroot) && exist(['G:\gstreamer\1.0\' suffix], 'dir')
-            sdkroot = ['G:\gstreamer\1.0\' suffix];
+            sdkroot = ['C:\gstreamer\1.0\' suffix];
         end
 
         if isempty(sdkroot) || ~exist(sdkroot, 'dir')
@@ -122,9 +121,9 @@ try
             if useGStreamer
                 % Matlab, or Octave in GUI mode: Prepend sdkroot to path:
                 newpath = [sdkroot ';' path];
-
+                
                 % Check if we have the right flavor of GStreamer, the MSVC variant:
-                addpath(sdkroot);
+                if ~isdeployed; addpath(sdkroot);end
                 if exist('libgstreamer-1.0-0.dll', 'file') && ~exist('gstreamer-1.0-0.dll', 'file')
                     % Wrong type, the MinGW build instead of the MSVC build!
                     fprintf('\n\n');
@@ -134,7 +133,7 @@ try
                     fprintf('PsychStartup: you fix this! Read ''help GStreamer'' for instructions.\n\n');
                     warning('WRONG TYPE OF GStreamer packages INSTALLED! WE NEED THE MSVC variant, but this is the MINGW variant!');
                 end
-                rmpath(sdkroot);
+                if ~isdeployed; rmpath(sdkroot);end
 
                 fprintf('\nPsychStartup: Adding path of installed GStreamer runtime to library path. [%s]\n', sdkroot);
             else
@@ -169,7 +168,7 @@ try
                 driverloadpath = [PsychtoolboxRoot 'PsychContributed' filesep ];
             end
             newpath = [driverloadpath ';' newpath];
-
+            
             setenv('PATH', newpath);
 
             % Also store sdkroot in a separate environment variable, to be used
